@@ -3,7 +3,7 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.fsm.context import FSMContext
-from parser import register
+from parser import register, get_captcha
 from app.db import *
 from sender import fetch_result
 
@@ -18,6 +18,8 @@ class Reg(StatesGroup):
     doc_type = State()
     document = State()
     region = State()
+    token = State()
+    captcha_code = State()
 
 @router.message(CommandStart())
 async def start(message: Message):
@@ -96,22 +98,29 @@ async def set_region(message: Message, state: FSMContext):
     await state.update_data(region=message.text.strip())
     await get_result(message, state)
 
-@router.callback_query(F.data == "correct")
-async def correct(call: CallbackQuery, state: FSMContext):
-    await call.message.edit_text("Одну минутку...")
+@router.message(Reg.captcha_code)
+async def set_captcha(message: Message, state: FSMContext):
     data = await state.get_data()
+    data["captcha_code"] = message.text.strip()
+
     cookie = await register(**data)
 
     if cookie != "":
-        await call.message.delete()
-        await call.message.answer(f"Ура! Теперь ты можешь получать информацию!\n"
+        await message.answer(f"Ура! Теперь ты зарегистрирован!\n"
                                   f"Если потребуется изменить какие-то данные, ты всегда можешь ещё раз написать /reg\n")
-        await add_to_database(call.from_user.id, cookie, await fetch_result(cookie))
+        await add_to_database(message.from_user.id, cookie, await fetch_result(cookie))
         await state.clear()
     else:
-        await call.message.delete()
-        await call.message.answer("Ошибка! Проверь введённые данные или повтори ещё раз")
-        await get_result(call.message, state)
+        await message.answer("Ошибка! Проверь введённые данные или повтори ещё раз")
+        await get_result(message, state)
+
+@router.callback_query(F.data == "correct")
+async def correct(call: CallbackQuery, state: FSMContext):
+    await state.set_state(Reg.captcha_code)
+    await call.message.edit_text("Почти готово!\nОсталось ввести капчу")
+    token, image = await get_captcha()
+    await state.update_data(token=token)
+    await call.message.answer_photo(photo=image)
 
 @router.callback_query(F.data == "incorrect")
 async def incorrect(call: CallbackQuery):
