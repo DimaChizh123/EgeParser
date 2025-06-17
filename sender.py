@@ -23,9 +23,9 @@ async def process_user(tg_id, cookie, response, bot):
         if current_result is not None and current_result != response:
             await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
             await add_to_database(tg_id, cookie, response)
-        else:
+        elif current_result is None:
             await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
-            print(f"{tg_id} упал")
+            print(f"{tg_id} упал (result None)")
             return
     except Exception as e:
         await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
