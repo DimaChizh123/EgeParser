@@ -2,6 +2,8 @@ import asyncio
 import aiohttp
 
 from aiogram import Bot
+from aiogram.exceptions import TelegramForbiddenError
+
 from app.db import *
 
 async def fetch_result(cookie):
@@ -20,16 +22,31 @@ async def process_user(tg_id, cookie, response, bot):
     try:
         current_result = await fetch_result(cookie)
         response = json.loads(response)
-        if current_result is not None and current_result != response:
-            await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
-            await add_to_database(tg_id, cookie, response)
-        elif current_result is None:
-            await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
+
+        if current_result is None:
+            try:
+                await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
+            except TelegramForbiddenError:
+                print(f"{tg_id} заблокировал бота (ошибка при None).")
+                await remove_user(tg_id)
             print(f"{tg_id} упал (result None)")
             return
+
+        if current_result != response:
+            try:
+                await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
+                await add_to_database(tg_id, cookie, current_result)
+            except TelegramForbiddenError:
+                print(f"Пользователь {tg_id} заблокировал бота.")
+                await remove_user(tg_id)
+
     except Exception as e:
-        await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
-        print(f"{tg_id} упал")
+        try:
+            await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
+        except TelegramForbiddenError:
+            print(f"{tg_id} заблокировал бота (внутри except).")
+            await remove_user(tg_id)
+        print(f"{tg_id} упал с ошибкой: {e}")
 
 async def background_loop(bot: Bot):
     while True:

@@ -22,3 +22,8 @@ async def get_users():
     async with aiosqlite.connect('parser_users.db') as db:
         cursor = await db.execute("SELECT tg_id, cookie, response FROM users")
         return await cursor.fetchall()
+
+async def remove_user(tg_id):
+    async with aiosqlite.connect('parser_users.db') as db:
+        await db.execute("DELETE FROM users WHERE tg_id = ?", (tg_id,))
+        await db.commit()
