@@ -24,14 +24,10 @@ async def process_user(tg_id, cookie, response, bot):
         response = json.loads(response)
 
         if current_result is None:
-            try:
-                await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
-            except TelegramForbiddenError:
-                print(f"{tg_id} заблокировал бота (ошибка при None).")
-                await remove_user(tg_id)
             print(f"{tg_id} упал (result None)")
             return
 
+        #Меняем на (если хэшированный current_result не равен response)
         if current_result != response:
             try:
                 await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
