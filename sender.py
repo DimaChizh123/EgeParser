@@ -21,14 +21,13 @@ async def fetch_result(cookie):
 async def process_user(tg_id, cookie, response, bot):
     try:
         current_result = await fetch_result(cookie)
-        response = json.loads(response)
 
         if current_result is None:
             print(f"{tg_id} упал (result None)")
             return
 
         #Меняем на (если хэшированный current_result не равен response)
-        if current_result != response:
+        if await hash_result(current_result) != response:
             try:
                 await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
                 await add_to_database(tg_id, cookie, current_result)
@@ -36,9 +35,6 @@ async def process_user(tg_id, cookie, response, bot):
             except TelegramForbiddenError:
                 print(f"Пользователь {tg_id} заблокировал бота.")
                 await remove_user(tg_id)
-        else:
-            await bot.send_message(chat_id=tg_id, text="Тебе не пришли результаты!")
-            print(f"{tg_id} не пришли резы")
 
     except Exception as e:
         print(f"{tg_id} упал с ошибкой: {e}")

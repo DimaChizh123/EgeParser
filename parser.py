@@ -6,7 +6,6 @@ import base64
 
 from aiogram.types import BufferedInputFile
 
-
 def simplify(s, n, p):
     fio = (s + n + p).lower()
     fio = re.sub(r'[^a-zA-Zа-яА-ЯёЁ]+', '', fio)
