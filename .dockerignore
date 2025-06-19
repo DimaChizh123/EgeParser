@@ -4,5 +4,5 @@ __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
-config.py
 *.db
+README.md
