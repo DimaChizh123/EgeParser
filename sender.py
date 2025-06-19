@@ -32,16 +32,12 @@ async def process_user(tg_id, cookie, response, bot):
             try:
                 await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
                 await add_to_database(tg_id, cookie, current_result)
+                print(f"{tg_id} пришли резы")
             except TelegramForbiddenError:
                 print(f"Пользователь {tg_id} заблокировал бота.")
                 await remove_user(tg_id)
 
     except Exception as e:
-        try:
-            await bot.send_message(chat_id=tg_id, text="Что-то сломалось, попробуй перезапустить бота")
-        except TelegramForbiddenError:
-            print(f"{tg_id} заблокировал бота (внутри except).")
-            await remove_user(tg_id)
         print(f"{tg_id} упал с ошибкой: {e}")
 
 async def background_loop(bot: Bot):
