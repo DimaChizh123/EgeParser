@@ -26,7 +26,6 @@ async def process_user(tg_id, cookie, response, bot):
             print(f"{tg_id} упал (result None)")
             return
 
-        #Меняем на (если хэшированный current_result не равен response)
         if await hash_result(current_result) != response:
             try:
                 await bot.send_message(chat_id=tg_id, text="Тебе пришли результаты!")
@@ -35,6 +34,8 @@ async def process_user(tg_id, cookie, response, bot):
             except TelegramForbiddenError:
                 print(f"Пользователь {tg_id} заблокировал бота.")
                 await remove_user(tg_id)
+        else:
+            print(f"{tg_id} не пришли резы")
 
     except Exception as e:
         print(f"{tg_id} упал с ошибкой: {e}")
