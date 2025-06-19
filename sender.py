@@ -34,8 +34,6 @@ async def process_user(tg_id, cookie, response, bot):
             except TelegramForbiddenError:
                 print(f"Пользователь {tg_id} заблокировал бота.")
                 await remove_user(tg_id)
-        else:
-            print(f"{tg_id} не пришли резы")
 
     except Exception as e:
         print(f"{tg_id} упал с ошибкой: {e}")
